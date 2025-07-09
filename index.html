@@ -391,11 +391,40 @@
                 loading.classList.add('show');
                 
                 try {
-                    const data = await this.prepareData();
+                    // Použijeme FormData pro soubory
+                    const formData = new FormData();
+                    
+                    // Základní data jako JSON string
+                    const basicData = {
+                        customerName: document.getElementById('name').value,
+                        customerEmail: document.getElementById('email').value,
+                        customerPhone: document.getElementById('phone').value,
+                        quantity: parseInt(document.getElementById('qty').value) || 1,
+                        notes: document.getElementById('notes').value,
+                        apronColor: this.color,
+                        apronColorName: this.color === 'black' ? 'Černá' : 'Hnědá',
+                        logoPosition: this.position,
+                        logoSize: this.logoSize,
+                        hasLogo: !!this.logoFile,
+                        logoFileName: this.logoFile ? this.logoFile.name : null,
+                        timestamp: new Date().toISOString(),
+                        source: 'github-pages-configurator'
+                    };
+                    
+                    formData.append('data', JSON.stringify(basicData));
+                    
+                    // Vizualizace jako soubor
+                    const vizBlob = await this.canvasToBlob();
+                    formData.append('visualization', vizBlob, 'vizualizace.png');
+                    
+                    // Logo jako soubor (pokud existuje)
+                    if (this.logoFile) {
+                        formData.append('logo', this.logoFile);
+                    }
+                    
                     const response = await fetch(this.webhook, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
+                        body: formData // Nespecifikujeme Content-Type, FormData to udělá automaticky
                     });
                     
                     if (response.ok) {
@@ -415,6 +444,12 @@
                         this.fallback();
                     }
                 }
+            }
+
+            canvasToBlob() {
+                return new Promise(resolve => {
+                    this.canvas.toBlob(resolve, 'image/png');
+                });
             }
 
             async prepareData() {
