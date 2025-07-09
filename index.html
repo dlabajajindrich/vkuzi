@@ -391,10 +391,12 @@
                 loading.classList.add('show');
                 
                 try {
-                    // Použijeme FormData pro soubory
+                    // DEBUG: Zkusíme oba přístupy
+                    console.log('Testování FormData přístupu...');
+                    
+                    // Zkusíme FormData s debugging
                     const formData = new FormData();
                     
-                    // Základní data jako JSON string
                     const basicData = {
                         customerName: document.getElementById('name').value,
                         customerEmail: document.getElementById('email').value,
@@ -408,24 +410,36 @@
                         hasLogo: !!this.logoFile,
                         logoFileName: this.logoFile ? this.logoFile.name : null,
                         timestamp: new Date().toISOString(),
-                        source: 'github-pages-configurator'
+                        source: 'github-pages-configurator-debug'
                     };
                     
-                    formData.append('data', JSON.stringify(basicData));
+                    formData.append('customerData', JSON.stringify(basicData));
                     
-                    // Vizualizace jako soubor
-                    const vizBlob = await this.canvasToBlob();
-                    formData.append('visualization', vizBlob, 'vizualizace.png');
+                    // Zkusíme canvas jako base64 (kvůli kompatibilitě)
+                    const vizBase64 = this.canvas.toDataURL('image/png');
+                    console.log('Visualization base64 length:', vizBase64.length);
                     
-                    // Logo jako soubor (pokud existuje)
+                    // Pošleme jako text field
+                    formData.append('visualizationBase64', vizBase64);
+                    
+                    // Logo jako soubor
                     if (this.logoFile) {
-                        formData.append('logo', this.logoFile);
+                        console.log('Přidávám logo soubor:', this.logoFile.name, this.logoFile.size);
+                        formData.append('logoFile', this.logoFile);
+                        
+                        // A také jako base64 pro jistotu
+                        const logoBase64 = await this.fileToBase64(this.logoFile);
+                        formData.append('logoBase64', logoBase64);
                     }
+                    
+                    console.log('Odesílám FormData...');
                     
                     const response = await fetch(this.webhook, {
                         method: 'POST',
-                        body: formData // Nespecifikujeme Content-Type, FormData to udělá automaticky
+                        body: formData
                     });
+                    
+                    console.log('Response status:', response.status);
                     
                     if (response.ok) {
                         loading.classList.remove('show');
@@ -433,7 +447,7 @@
                         form.reset();
                         this.reset();
                     } else {
-                        throw new Error('Chyba při odesílání');
+                        throw new Error('Chyba při odesílání: ' + response.status);
                     }
                 } catch (error) {
                     console.error('Chyba:', error);
