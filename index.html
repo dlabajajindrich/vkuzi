@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konfigurátor zástěr</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#fff;line-height:1.6;}
+        .container{max-width:1200px;margin:0 auto;padding:20px;}
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-bottom:30px;}
+        .section{background:#f8f9fa;padding:25px;border-radius:10px;box-shadow:0 2px 15px rgba(0,0,0,0.08);}
+        .title{font-size:1.4rem;font-weight:600;color:#2c3e50;margin-bottom:20px;}
+        .colors{display:flex;gap:15px;margin-bottom:25px;}
+        .color{flex:1;padding:15px;border:2px solid #e9ecef;border-radius:8px;cursor:pointer;transition:all 0.3s;text-align:center;background:#fff;}
+        .color:hover{border-color:#3498db;transform:translateY(-2px);}
+        .color.selected{border-color:#3498db;background:#e3f2fd;}
+        .color-circle{width:40px;height:40px;border-radius:50%;margin:0 auto 10px;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
+        .black{background:#2c3e50;}
+        .brown{background:#8b4513;}
+        .upload{border:2px dashed #bdc3c7;border-radius:8px;padding:25px;text-align:center;cursor:pointer;transition:all 0.3s;margin-bottom:20px;background:#fff;}
+        .upload:hover{border-color:#3498db;background:#f8f9fa;}
+        .upload.dragover{border-color:#27ae60;background:#d5f4e6;}
+        .upload.has-file{border-color:#27ae60;background:#d5f4e6;}
+        .upload-icon{font-size:2rem;margin-bottom:10px;color:#6c757d;}
+        .file-input{display:none;}
+        .file-info{margin-top:10px;font-size:0.9rem;color:#6c757d;}
+        .controls{display:none;margin-top:20px;padding:20px;background:#fff;border-radius:8px;border:1px solid #e9ecef;}
+        .controls.active{display:block;}
+        .control{margin-bottom:15px;}
+        .label{display:block;margin-bottom:5px;font-weight:500;color:#2c3e50;}
+        .input{width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:4px;font-size:14px;}
+        .size-control{display:flex;gap:10px;align-items:center;}
+        .size-control input{flex:1;}
+        .size-control span{min-width:50px;font-weight:500;}
+        .viz{text-align:center;}
+        .canvas-wrap{position:relative;display:inline-block;margin:20px 0;}
+        #canvas{border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.1);max-width:100%;height:auto;background:#fff;}
+        .info{margin-top:15px;padding:15px;background:#fff;border-radius:8px;font-size:0.9rem;border:1px solid #e9ecef;}
+        .info-row{display:flex;justify-content:space-between;margin-bottom:5px;}
+        .info-row:last-child{margin-bottom:0;}
+        .form{background:#f8f9fa;padding:25px;border-radius:10px;box-shadow:0 2px 15px rgba(0,0,0,0.08);}
+        .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+        .form-group{margin-bottom:20px;}
+        .form-group.full{grid-column:1/-1;}
+        .form-label{display:block;margin-bottom:8px;font-weight:600;color:#2c3e50;}
+        .form-input{width:100%;padding:12px 15px;border:2px solid #e9ecef;border-radius:8px;font-size:16px;transition:border-color 0.3s;background:#fff;}
+        .form-input:focus{outline:none;border-color:#3498db;}
+        textarea.form-input{resize:vertical;min-height:80px;}
+        .btn{background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;padding:15px 40px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:all 0.3s;text-transform:uppercase;letter-spacing:1px;width:100%;}
+        .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(52,152,219,0.3);}
+        .btn:disabled{background:#bdc3c7;cursor:not-allowed;transform:none;box-shadow:none;}
+        .loading{display:none;text-align:center;padding:20px;}
+        .loading.show{display:block;}
+        .spinner{border:3px solid #f3f3f3;border-top:3px solid #3498db;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:0 auto 10px;}
+        @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+        .success{display:none;text-align:center;padding:30px;background:#d5f4e6;border-radius:10px;color:#27ae60;margin-top:20px;}
+        .success.show{display:block;}
+        .success-icon{font-size:3rem;margin-bottom:15px;}
+        .text-success{color:#27ae60;}
+        @media (max-width:768px){.grid{grid-template-columns:1fr;gap:20px;}.form-grid{grid-template-columns:1fr;}.colors{flex-direction:column;}.section,.form{padding:20px;}}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="grid">
+            <div class="section">
+                <h2 class="title">1. Vyberte barvu zástěry</h2>
+                <div class="colors">
+                    <div class="color" data-color="black">
+                        <div class="color-circle black"></div>
+                        <strong>Černá</strong>
+                        <div>Klasická elegance</div>
+                    </div>
+                    <div class="color" data-color="brown">
+                        <div class="color-circle brown"></div>
+                        <strong>Hnědá</strong>
+                        <div>Přírodní tón</div>
+                    </div>
+                </div>
+
+                <h2 class="title">2. Nahrajte logo</h2>
+                <div class="upload" id="upload">
+                    <div class="upload-icon">📁</div>
+                    <div><strong>Klikněte nebo přetáhněte logo</strong></div>
+                    <div>PNG, JPG, SVG (max 5MB)</div>
+                    <div class="file-info" id="fileInfo"></div>
+                </div>
+                <input type="file" id="logoFile" class="file-input" accept=".png,.jpg,.jpeg,.svg">
+
+                <div class="controls" id="controls">
+                    <div class="control">
+                        <label class="label">Pozice loga:</label>
+                        <select class="input" id="position">
+                            <option value="center">Střed</option>
+                            <option value="top-left">Vlevo nahoře</option>
+                            <option value="top-right">Vpravo nahoře</option>
+                            <option value="bottom-center">Dole uprostřed</option>
+                        </select>
+                    </div>
+                    <div class="control">
+                        <label class="label">Velikost loga:</label>
+                        <div class="size-control">
+                            <input type="range" class="input" id="size" min="50" max="200" value="100">
+                            <span id="sizeValue">100px</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="title">Náhled zástěry</h2>
+                <div class="viz">
+                    <div class="canvas-wrap">
+                        <canvas id="canvas" width="300" height="400"></canvas>
+                    </div>
+                    <div class="info">
+                        <div class="info-row">
+                            <span>Typ:</span>
+                            <span>Výčepní zástěra</span>
+                        </div>
+                        <div class="info-row">
+                            <span>Barva:</span>
+                            <span id="colorText">Nevybráno</span>
+                        </div>
+                        <div class="info-row">
+                            <span>Logo:</span>
+                            <span id="logoText">Nenahrané</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form">
+            <h2 class="title">3. Kontaktní údaje</h2>
+            <form id="form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="name">Jméno a příjmení *</label>
+                        <input type="text" id="name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="email">E-mail *</label>
+                        <input type="email" id="email" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="phone">Telefon</label>
+                        <input type="tel" id="phone" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="qty">Množství (ks)</label>
+                        <input type="number" id="qty" class="form-input" min="1" value="1">
+                    </div>
+                </div>
+                <div class="form-group full">
+                    <label class="form-label" for="notes">Poznámky</label>
+                    <textarea id="notes" class="form-input" placeholder="Další požadavky nebo poznámky..."></textarea>
+                </div>
+                <button type="submit" class="btn" id="submit">Odeslat poptávku</button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>Odesílám poptávku...</div>
+            </div>
+
+            <div class="success" id="success">
+                <div class="success-icon">✅</div>
+                <h2>Poptávka odeslána!</h2>
+                <p>Děkujeme za váš zájem. Brzy se vám ozveme s cenovou nabídkou.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class Configurator {
+            constructor() {
+                this.color = '';
+                this.logoFile = null;
+                this.logoImage = null;
+                this.position = 'center';
+                this.logoSize = 100;
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.aprons = {};
+                this.webhook = 'https://hook.eu2.make.com/7f4wr7vfr9xufzyakdj7ytynupv11y1b';
+                this.init();
+            }
+
+            init() {
+                this.setupEvents();
+                this.loadAprons();
+                this.drawPlaceholder();
+            }
+
+            setupEvents() {
+                document.querySelectorAll('.color').forEach(el => {
+                    el.addEventListener('click', e => this.selectColor(e.currentTarget.dataset.color));
+                });
+
+                const upload = document.getElementById('upload');
+                const fileInput = document.getElementById('logoFile');
+
+                upload.addEventListener('click', () => fileInput.click());
+                upload.addEventListener('dragover', this.handleDrag.bind(this));
+                upload.addEventListener('drop', this.handleDrop.bind(this));
+                fileInput.addEventListener('change', e => this.handleFile(e.target.files[0]));
+
+                document.getElementById('position').addEventListener('change', e => {
+                    this.position = e.target.value;
+                    this.updateViz();
+                });
+
+                document.getElementById('size').addEventListener('input', e => {
+                    this.logoSize = parseInt(e.target.value);
+                    document.getElementById('sizeValue').textContent = this.logoSize + 'px';
+                    this.updateViz();
+                });
+
+                document.getElementById('form').addEventListener('submit', e => {
+                    e.preventDefault();
+                    this.submit();
+                });
+            }
+
+            loadAprons() {
+                const colors = { black: '#2c3e50', brown: '#8b4513' };
+                
+                Object.keys(colors).forEach(color => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 300;
+                    canvas.height = 400;
+                    const ctx = canvas.getContext('2d');
+                    
+                    ctx.fillStyle = colors[color];
+                    ctx.fillRect(50, 60, 200, 280);
+                    ctx.fillRect(80, 20, 20, 50);
+                    ctx.fillRect(200, 20, 20, 50);
+                    ctx.fillRect(60, 20, 180, 15);
+                    
+                    ctx.fillStyle = this.adjustColor(colors[color], -20);
+                    ctx.fillRect(100, 250, 100, 60);
+                    
+                    ctx.strokeStyle = this.adjustColor(colors[color], -40);
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(100, 250, 100, 60);
+                    
+                    const img = new Image();
+                    img.onload = () => {
+                        this.aprons[color] = img;
+                        if (this.color === color) this.updateViz();
+                    };
+                    img.src = canvas.toDataURL();
+                });
+            }
+
+            adjustColor(color, amount) {
+                const num = parseInt(color.replace("#", ""), 16);
+                const amt = Math.round(2.55 * amount);
+                const R = (num >> 16) + amt;
+                const G = (num >> 8 & 0x00FF) + amt;
+                const B = (num & 0x0000FF) + amt;
+                return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+                    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+                    (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+            }
+
+            selectColor(color) {
+                this.color = color;
+                document.querySelectorAll('.color').forEach(el => el.classList.remove('selected'));
+                document.querySelector(`[data-color="${color}"]`).classList.add('selected');
+                
+                const names = { black: 'Černá', brown: 'Hnědá' };
+                document.getElementById('colorText').textContent = names[color];
+                this.updateViz();
+            }
+
+            handleDrag(e) {
+                e.preventDefault();
+                e.currentTarget.classList.add('dragover');
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                e.currentTarget.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file) this.handleFile(file);
+            }
+
+            handleFile(file) {
+                if (!file) return;
+                
+                const types = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
+                if (!types.includes(file.type)) {
+                    alert('Podporované formáty: PNG, JPG, SVG');
+                    return;
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Soubor je příliš velký (max 5MB)');
+                    return;
+                }
+                
+                this.logoFile = file;
+                this.loadLogo(file);
+                
+                document.getElementById('upload').classList.add('has-file');
+                document.getElementById('fileInfo').innerHTML = `<span class="text-success">✓ ${file.name}</span>`;
+                document.getElementById('controls').classList.add('active');
+                document.getElementById('logoText').textContent = file.name;
+            }
+
+            loadLogo(file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.logoImage = img;
+                        this.updateViz();
+                    };
+                    img.onerror = () => alert('Nepodařilo se načíst logo.');
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => alert('Nepodařilo se přečíst soubor.');
+                reader.readAsDataURL(file);
+            }
+
+            drawPlaceholder() {
+                this.ctx.fillStyle = '#f8f9fa';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.fillStyle = '#6c757d';
+                this.ctx.font = '18px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('Vyberte barvu zástěry', this.canvas.width / 2, this.canvas.height / 2 - 10);
+                this.ctx.font = '14px Arial';
+                this.ctx.fillText('pro zobrazení náhledu', this.canvas.width / 2, this.canvas.height / 2 + 15);
+            }
+
+            updateViz() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                if (this.color && this.aprons[this.color]) {
+                    this.ctx.drawImage(this.aprons[this.color], 0, 0, this.canvas.width, this.canvas.height);
+                } else {
+                    this.drawPlaceholder();
+                    return;
+                }
+                
+                if (this.logoImage) this.drawLogo();
+            }
+
+            drawLogo() {
+                if (!this.logoImage) return;
+                
+                const size = this.logoSize;
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                let x, y;
+                
+                switch (this.position) {
+                    case 'center': x = (w - size) / 2; y = (h - size) / 2; break;
+                    case 'top-left': x = 20; y = 40; break;
+                    case 'top-right': x = w - size - 20; y = 40; break;
+                    case 'bottom-center': x = (w - size) / 2; y = h - size - 40; break;
+                    default: x = (w - size) / 2; y = (h - size) / 2;
+                }
+                
+                this.ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                this.ctx.fillRect(x - 5, y - 5, size + 10, size + 10);
+                this.ctx.drawImage(this.logoImage, x, y, size, size);
+            }
+
+            async submit() {
+                const btn = document.getElementById('submit');
+                const loading = document.getElementById('loading');
+                const success = document.getElementById('success');
+                
+                if (!this.color) {
+                    alert('Prosím vyberte barvu zástěry');
+                    return;
+                }
+                
+                const form = document.getElementById('form');
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                
+                btn.disabled = true;
+                loading.classList.add('show');
+                
+                try {
+                    const data = await this.prepareData();
+                    const response = await fetch(this.webhook, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (response.ok) {
+                        loading.classList.remove('show');
+                        success.classList.add('show');
+                        form.reset();
+                        this.reset();
+                    } else {
+                        throw new Error('Chyba při odesílání');
+                    }
+                } catch (error) {
+                    console.error('Chyba:', error);
+                    loading.classList.remove('show');
+                    btn.disabled = false;
+                    
+                    if (confirm('Nepodařilo se odeslat automaticky. Otevřít email?')) {
+                        this.fallback();
+                    }
+                }
+            }
+
+            async prepareData() {
+                const viz = this.canvas.toDataURL('image/png');
+                let logo = null;
+                if (this.logoFile) {
+                    logo = await this.fileToBase64(this.logoFile);
+                }
+                
+                return {
+                    customerName: document.getElementById('name').value,
+                    customerEmail: document.getElementById('email').value,
+                    customerPhone: document.getElementById('phone').value,
+                    quantity: parseInt(document.getElementById('qty').value) || 1,
+                    notes: document.getElementById('notes').value,
+                    apronColor: this.color,
+                    apronColorName: this.color === 'black' ? 'Černá' : 'Hnědá',
+                    logoPosition: this.position,
+                    logoSize: this.logoSize,
+                    hasLogo: !!this.logoFile,
+                    logoFileName: this.logoFile ? this.logoFile.name : null,
+                    logoData: logo,
+                    visualizationData: viz,
+                    timestamp: new Date().toISOString(),
+                    source: 'github-pages-configurator'
+                };
+            }
+
+            fileToBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            fallback() {
+                const data = {
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    qty: document.getElementById('qty').value,
+                    notes: document.getElementById('notes').value
+                };
+                
+                const subject = encodeURIComponent('Poptávka - Konfigurátor zástěr');
+                const body = encodeURIComponent(`Nová poptávka:
+
+Zákazník: ${data.name}
+Email: ${data.email}
+Telefon: ${data.phone}
+Množství: ${data.qty}
+Barva: ${this.color === 'black' ? 'Černá' : 'Hnědá'}
+Logo: ${this.logoFile ? this.logoFile.name : 'Žádné'}
+Poznámky: ${data.notes}
+
+Datum: ${new Date().toLocaleDateString('cs-CZ')}`);
+                
+                window.open(`mailto:dlabajajindrich@gmail.com?subject=${subject}&body=${body}`);
+            }
+
+            reset() {
+                this.color = '';
+                this.logoFile = null;
+                this.logoImage = null;
+                this.position = 'center';
+                this.logoSize = 100;
+                
+                document.querySelectorAll('.color').forEach(el => el.classList.remove('selected'));
+                document.getElementById('upload').classList.remove('has-file');
+                document.getElementById('fileInfo').innerHTML = '';
+                document.getElementById('controls').classList.remove('active');
+                document.getElementById('logoFile').value = '';
+                document.getElementById('position').value = 'center';
+                document.getElementById('size').value = 100;
+                document.getElementById('sizeValue').textContent = '100px';
+                document.getElementById('colorText').textContent = 'Nevybráno';
+                document.getElementById('logoText').textContent = 'Nenahrané';
+                
+                this.drawPlaceholder();
+                document.getElementById('submit').disabled = false;
+                
+                setTimeout(() => {
+                    const success = document.getElementById('success');
+                    if (!success.querySelector('.new-btn')) {
+                        const btn = document.createElement('button');
+                        btn.textContent = 'Nová poptávka';
+                        btn.className = 'btn new-btn';
+                        btn.style.marginTop = '20px';
+                        btn.onclick = () => success.classList.remove('show');
+                        success.appendChild(btn);
+                    }
+                }, 500);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => new Configurator());
+    </script>
+</body>
+</html>
